@@ -1,16 +1,16 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   get_next_line.c                                    :+:      :+:    :+:   */
+/*   get_next_line_bonus.c                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: abdennac <abdennac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/01/10 18:12:51 by abdennac          #+#    #+#             */
-/*   Updated: 2024/01/24 20:02:44 by abdennac         ###   ########.fr       */
+/*   Created: 2024/01/22 23:18:25 by abdennac          #+#    #+#             */
+/*   Updated: 2024/01/24 19:56:38 by abdennac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "get_next_line.h"
+#include "get_next_line_bonus.h"
 
 char	*ft_append(char *line, char *buffer)
 {
@@ -18,6 +18,7 @@ char	*ft_append(char *line, char *buffer)
 
 	tmp = ft_strjoin(line, buffer);
 	free(line);
+	line = NULL;
 	return (tmp);
 }
 
@@ -33,6 +34,7 @@ char	*rest_of_line(char *buffer)
 	if (!buffer[i])
 	{
 		free(buffer);
+		buffer = NULL;
 		return (NULL);
 	}
 	line = ft_calloc((ft_strlen(buffer) - i + 1), sizeof(char));
@@ -41,6 +43,7 @@ char	*rest_of_line(char *buffer)
 	while (buffer[i])
 		line[j++] = buffer[i++];
 	free(buffer);
+	buffer = NULL;
 	return (line);
 }
 
@@ -90,28 +93,29 @@ char	*read_file(int fd, char *buffer)
 			break ;
 	}
 	free(line);
+	line = NULL;
 	return (buffer);
 }
 
 char	*get_next_line(int fd)
 {
-	static char	*buffer;
+	static char	*buffer[OPEN_MAX];
 	char		*line;
 
-	if (fd < 0 || BUFFER_SIZE <= 0 || read(fd, 0, 0) < 0)
+	if (fd < 0 || fd > OPEN_MAX || BUFFER_SIZE <= 0 || read(fd, 0, 0) < 0)
 	{
-		free(buffer);
-		buffer = NULL;
+		free(buffer[fd]);
+		buffer[fd] = NULL;
 		return (NULL);
 	}
-	buffer = read_file(fd, buffer);
-	if (!buffer)
+	buffer[fd] = read_file(fd, buffer[fd]);
+	if (!buffer[fd])
 	{
-		free(buffer);
-		buffer = NULL;
+		free(buffer[fd]);
+		buffer[fd] = NULL;
 		return (NULL);
 	}
-	line = extract_line(buffer);
-	buffer = rest_of_line(buffer);
+	line = extract_line(buffer[fd]);
+	buffer[fd] = rest_of_line(buffer[fd]);
 	return (line);
 }
